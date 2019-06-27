@@ -175,6 +175,7 @@ func (tx *Tx) queryAll(dest interface{}, sql string, param ...interface{}) (int6
 
 		for i := 0; i < len(maps); i++ {
 			if maps[i] != nil {
+				reflect.ValueOf(vals).Index(i).Set(reflect.New(elem.Field(maps[i].(int)).Type.Elem()))
 				newVal.Elem().Field(maps[i].(int)).Set(reflect.ValueOf(vals[i]))
 			}
 		}
