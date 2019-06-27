@@ -160,7 +160,6 @@ func (tx *Tx) queryAll(dest interface{}, sql string, param ...interface{}) (int6
 		for j, col := range columns {
 			if col == elem.Field(i).Tag.Get("col") {
 				maps[j] = i //column[j] map to elem.field[i] //field must be a pointer
-				reflect.ValueOf(vals).Index(j).Set(reflect.New(elem.Field(i).Type.Elem()))
 			}
 		}
 	}
@@ -168,6 +167,13 @@ func (tx *Tx) queryAll(dest interface{}, sql string, param ...interface{}) (int6
 	for rows.Next() {
 		total++
 		newVal := reflect.New(elem)
+
+		for i := 0; i < len(maps); i++ {
+			if maps[i] != nil {
+				reflect.ValueOf(vals).Index(i).Set(reflect.New(elem.Field(maps[i].(int)).Type.Elem()))
+			}
+		}
+
 		e := rows.Scan(vals...)
 		if e != nil {
 			return 0, e
@@ -175,7 +181,6 @@ func (tx *Tx) queryAll(dest interface{}, sql string, param ...interface{}) (int6
 
 		for i := 0; i < len(maps); i++ {
 			if maps[i] != nil {
-				reflect.ValueOf(vals).Index(i).Set(reflect.New(elem.Field(maps[i].(int)).Type.Elem()))
 				newVal.Elem().Field(maps[i].(int)).Set(reflect.ValueOf(vals[i]))
 			}
 		}
